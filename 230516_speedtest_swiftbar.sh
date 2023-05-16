@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# <bitbar.title>Speedtest and Log</bitbar.title>
+# <bitbar.version>v1.0</bitbar.version>
+# <bitbar.author>hann-solo</bitbar.author>
+# <bitbar.author.github>hnsol</bitbar.author.github>
+# <bitbar.desc>Displays the last 10 lines of speedtest. Keeps a log of speedtest results.</bitbar.desc>
+# <bitbar.image>http://www.hosted-somewhere/pluginimage</bitbar.image>
+# <bitbar.dependencies>bash</bitbar.dependencies>
+# <bitbar.abouturl>http://url-to-about.com/</bitbar.abouturl>
+
+# ファイルパスを変数に代入
+logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest-loop.log"
+
+# Speedtestを実施して結果を変数に代入
+ssid=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | awk -F': ' '/ SSID/ {print "SSID: " $2}')
+output=$(networkQuality)
+uplink=$(echo "$output" | awk -F': ' '/Uplink capacity/{print $2}')
+downlink=$(echo "$output" | awk -F': ' '/Downlink capacity/ {print $2}')
+res=$(echo "$output" | awk -F': ' '/Responsiveness/ {print $2}')
+idle=$(echo "$output" | awk -F': ' '/Idle Latency/ {print $2}')
+
+# 現在時刻を取得して変数に代入
+timestamp=$(date '+%Y-%m-%d %H:%M')
+
+# 結果をログファイルに追記
+printf "（%s）\t%s\t%s\t%s\t%s\t%s\n" "$timestamp" "$ssid" "↑ $uplink" "↓ $downlink" "$res" "$idle" >> "$logfile"
+
+
+# メニューバーに表示する内容を出力
+echo "$icon"
+echo "---"
+
+# 最新の10行を取得
+latest_lines=$(tail -n 10 "$logfile")
+
+# 各行の内容を必要な情報に分割して表示
+while IFS= read -r line; do
+  timestamp=$(echo "$line" | awk -F '\t' '{print $1}')
+  ssid=$(echo "$line" | awk -F '\t' '{print $2}' | awk -F ' ' '{print $2}')
+  uplink=$(echo "$line" | awk -F '\t' '{print $3}')
+  downlink=$(echo "$line" | awk -F '\t' '{print $4}')
+  res=$(echo "$line" | awk -F '\t' '{print $5}' | awk -F ' ' '{print $1}')
+  idle=$(echo "$line" | awk -F '\t' '{print $6}' | awk -F ' ' '{print $1 "ms"}')
+  echo "$timestamp $ssid $uplink $downlink $res $idle"
+done <<< "$latest_lines"

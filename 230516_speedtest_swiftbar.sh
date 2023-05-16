@@ -26,6 +26,9 @@ timestamp=$(date '+%Y-%m-%d %H:%M')
 # 結果をログファイルに追記
 printf "（%s）\t%s\t%s\t%s\t%s\t%s\n" "$timestamp" "$ssid" "↑ $uplink" "↓ $downlink" "$res" "$idle" >> "$logfile"
 
+# メニューバーに表示するアイコンとタイトル
+icon=":wifi.square.fill: | sfsize=16"
+title="Speedtest"
 
 # メニューバーに表示する内容を出力
 echo "$icon"

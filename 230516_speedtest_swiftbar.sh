@@ -10,7 +10,7 @@
 # <bitbar.abouturl>http://url-to-about.com/</bitbar.abouturl>
 
 # 変数の設定
-logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest-loop.log"
+logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest_swiftbar.log"
 icon=":wifi.square.fill: | sfsize=16"
 
 # Speedtestを実施して結果を変数に代入
@@ -26,7 +26,6 @@ timestamp=$(date '+%Y-%m-%d %H:%M')
 
 # 結果をログファイルに追記
 printf "（%s）\t%s\t%s\t%s\t%s\t%s\n" "$timestamp" "$ssid" "↑ $uplink" "↓ $downlink" "$res" "$idle" >> "$logfile"
-
 
 # メニューバーに表示する内容を出力
 echo "$icon"

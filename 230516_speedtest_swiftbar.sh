@@ -9,8 +9,9 @@
 # <bitbar.dependencies>bash</bitbar.dependencies>
 # <bitbar.abouturl>http://url-to-about.com/</bitbar.abouturl>
 
-# ファイルパスを変数に代入
+# 変数の設定
 logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest-loop.log"
+icon=":wifi.square.fill: | sfsize=16"
 
 # Speedtestを実施して結果を変数に代入
 ssid=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | awk -F': ' '/ SSID/ {print "SSID: " $2}')
@@ -26,9 +27,6 @@ timestamp=$(date '+%Y-%m-%d %H:%M')
 # 結果をログファイルに追記
 printf "（%s）\t%s\t%s\t%s\t%s\t%s\n" "$timestamp" "$ssid" "↑ $uplink" "↓ $downlink" "$res" "$idle" >> "$logfile"
 
-# メニューバーに表示するアイコンとタイトル
-icon=":wifi.square.fill: | sfsize=16"
-title="Speedtest"
 
 # メニューバーに表示する内容を出力
 echo "$icon"

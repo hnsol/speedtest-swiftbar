@@ -16,7 +16,7 @@ logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516
 icon=":wifi.square.fill: | sfsize=16"
 
 # Speedtestを実施して結果を変数に代入
-ssid=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | awk -F': ' '/ SSID/ {print "SSID: " $2}')
+ssid=$(system_profiler SPAirPortDataType | awk '/Current Network Information:/{getline; gsub(/^ +|:$/,""); print "SSID: " $0; exit}')
 output=$(networkQuality)
 uplink=$(echo "$output" | awk -F': ' '/Uplink capacity/{print $2}')
 downlink=$(echo "$output" | awk -F': ' '/Downlink capacity/ {print $2}')

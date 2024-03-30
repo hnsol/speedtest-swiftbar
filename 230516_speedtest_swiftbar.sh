@@ -10,7 +10,9 @@
 # <bitbar.abouturl>http://url-to-about.com/</bitbar.abouturl>
 
 # 変数の設定
-logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest_swiftbar.log"
+# logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest_swiftbar.log"
+current_month=$(date '+%Y-%m')
+logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest_swiftbar_${current_month}.log"
 icon=":wifi.square.fill: | sfsize=16"
 
 # Speedtestを実施して結果を変数に代入

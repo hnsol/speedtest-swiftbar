@@ -1,0 +1,8 @@
+.clang-module-cache/
+.swift-module-cache/
+logs/current/*.log
+helper/WiFiSSIDHelper/build/.module-cache/
+helper/WiFiSSIDHelper/build/.DS_Store
+helper/WiFiSSIDHelper/.DS_Store
+WiFiSSIDHelper/.DS_Store
+WiFiSSIDHelper/.module-cache/

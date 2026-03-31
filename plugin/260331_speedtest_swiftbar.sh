@@ -9,18 +9,39 @@
 # <bitbar.dependencies>bash</bitbar.dependencies>
 # <bitbar.abouturl>http://url-to-about.com/</bitbar.abouturl>
 
+resolve_script_path() {
+  local source_path="${BASH_SOURCE[0]}"
+
+  while [ -L "$source_path" ]; do
+    local source_dir
+    source_dir=$(cd -P "$(dirname "$source_path")" && pwd)
+    source_path=$(readlink "$source_path")
+
+    case "$source_path" in
+      /*) ;;
+      *) source_path="$source_dir/$source_path" ;;
+    esac
+  done
+
+  cd -P "$(dirname "$source_path")" && pwd
+}
+
 # 変数の設定
-# logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest_swiftbar.log"
+script_dir=$(resolve_script_path)
+repo_dir=$(cd "$script_dir/.." && pwd)
 current_month=$(date '+%Y-%m')
-logfile="/Users/masatora/Documents/MyDevelop/260100/260331_speedtest_swiftbar/260331_speedtest_swiftbar_${current_month}.log"
+log_dir="$repo_dir/logs/current"
+logfile="$log_dir/260331_speedtest_swiftbar_${current_month}.log"
 icon=":wifi.square.fill: | sfsize=16"
 
 get_current_ssid() {
-  local helper_app="/Users/masatora/Documents/MyDevelop/260100/260331_speedtest_swiftbar/WiFiSSIDHelper/WiFiSSIDHelper.app"
+  local helper_app="$repo_dir/helper/WiFiSSIDHelper/build/WiFiSSIDHelper.app"
   local helper_bin="$helper_app/Contents/MacOS/WiFiSSIDHelper"
   local wifi_device=""
   local ssid=""
   local swift_cache_dir="${TMPDIR:-/tmp}/swiftbar-speedtest-module-cache"
+
+  mkdir -p "$log_dir"
 
   if [ -x "$helper_bin" ]; then
     ssid=$("$helper_bin" 2>/dev/null)

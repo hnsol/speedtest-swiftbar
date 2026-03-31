@@ -2,10 +2,11 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "$0")" && pwd)
-app_dir="$script_dir/WiFiSSIDHelper.app"
+build_dir="$script_dir/build"
+app_dir="$build_dir/WiFiSSIDHelper.app"
 contents_dir="$app_dir/Contents"
 macos_dir="$contents_dir/MacOS"
-module_cache_dir="$script_dir/.module-cache"
+module_cache_dir="$build_dir/.module-cache"
 
 rm -rf "$app_dir"
 mkdir -p "$macos_dir"

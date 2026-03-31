@@ -12,44 +12,78 @@
 # 変数の設定
 # logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest_swiftbar.log"
 current_month=$(date '+%Y-%m')
-logfile="/Users/masatora/Documents/MyDevelop/230100/230516_SwiftBarPlugin/230516_speedtest_swiftbar_${current_month}.log"
+logfile="/Users/masatora/Documents/MyDevelop/260100/260331_speedtest_swiftbar/260331_speedtest_swiftbar_${current_month}.log"
 icon=":wifi.square.fill: | sfsize=16"
 
 get_current_ssid() {
+  local helper_app="/Users/masatora/Documents/MyDevelop/260100/260331_speedtest_swiftbar/WiFiSSIDHelper/WiFiSSIDHelper.app"
+  local helper_bin="$helper_app/Contents/MacOS/WiFiSSIDHelper"
   local wifi_device=""
   local ssid=""
+  local swift_cache_dir="${TMPDIR:-/tmp}/swiftbar-speedtest-module-cache"
 
-  wifi_device=$(networksetup -listallhardwareports 2>/dev/null | awk '
-    /Hardware Port: (Wi-Fi|AirPort)/ {
-      getline
-      if ($1 == "Device:") {
-        print $2
-        exit
-      }
-    }
-  ')
+  if [ -x "$helper_bin" ]; then
+    ssid=$("$helper_bin" 2>/dev/null)
+  fi
 
-  if [ -n "$wifi_device" ]; then
-    ssid=$(networksetup -getairportnetwork "$wifi_device" 2>/dev/null | sed -E 's/^Current (Wi-Fi|AirPort) Network: //')
+  if [ -z "$ssid" ]; then
+    mkdir -p "$swift_cache_dir" 2>/dev/null
+
+    ssid=$(swift -module-cache-path "$swift_cache_dir" -e 'import CoreWLAN
+let ssid = CWWiFiClient.shared().interface()?.ssid()
+print(ssid ?? "")
+' 2>/dev/null)
+  fi
+
+  case "$ssid" in
+    ""|"<unknown>"|"(null)"|"<SSID Redacted>"|"<redacted>")
+      ssid=""
+      ;;
+  esac
+
+  if [ -z "$ssid" ]; then
+    ssid=$(ioreg -l 2>/dev/null | awk -F'"' '/"IO80211SSID"/ {print $(NF-1); exit}')
 
     case "$ssid" in
-      ""|"You are not associated with an AirPort network."*)
+      ""|"<unknown>"|"(null)"|"<SSID Redacted>"|"<redacted>")
         ssid=""
         ;;
     esac
   fi
 
   if [ -z "$ssid" ]; then
+    wifi_device=$(networksetup -listallhardwareports 2>/dev/null | awk '
+      /Hardware Port: (Wi-Fi|AirPort)/ {
+        getline
+        if ($1 == "Device:") {
+          print $2
+          exit
+        }
+      }
+    ')
+
+    if [ -n "$wifi_device" ]; then
+      ssid=$(networksetup -getairportnetwork "$wifi_device" 2>/dev/null | sed -E 's/^Current (Wi-Fi|AirPort) Network: //')
+
+      case "$ssid" in
+        ""|"You are not associated with an AirPort network."*|"<SSID Redacted>"|"<redacted>")
+          ssid=""
+          ;;
+      esac
+    fi
+  fi
+
+  if [ -z "$ssid" ]; then
     ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '
       /Current Network Information:/ {
         getline
-        gsub(/^ +|:$/, "")
-        print
+        gsub(/^ +|:$/, "", $0)
+        print $0
         exit
       }
       /^ *SSID: / {
-        sub(/^ *SSID: /, "")
-        print
+        sub(/^ *SSID: /, "", $0)
+        print $0
         exit
       }
     ')
@@ -86,7 +120,7 @@ latest_lines=$(tail -n 10 "$logfile")
 # 各行の内容を必要な情報に分割して表示
 while IFS= read -r line; do
   timestamp=$(echo "$line" | awk -F '\t' '{print $1}')
-  ssid=$(echo "$line" | awk -F '\t' '{print $2}' | sed 's/^SSID: //')
+  ssid=$(echo "$line" | awk -F '\t' '{print $2}')
   uplink=$(echo "$line" | awk -F '\t' '{print $3}')
   downlink=$(echo "$line" | awk -F '\t' '{print $4}')
   res=$(echo "$line" | awk -F '\t' '{print $5}' | awk -F ' ' '{print $1}')

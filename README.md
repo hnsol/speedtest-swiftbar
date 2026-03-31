@@ -80,3 +80,7 @@ If SSID still shows as `Unknown`:
 ```
 
 If `networkQuality` does not return a result, the plugin logs `N/A` instead of leaving empty fields.
+
+## License
+
+MIT. See [LICENSE](./LICENSE).

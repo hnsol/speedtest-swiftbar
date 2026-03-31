@@ -26,6 +26,14 @@ resolve_script_path() {
   cd -P "$(dirname "$source_path")" && pwd
 }
 
+value_or_na() {
+  if [ -n "$1" ]; then
+    printf "%s" "$1"
+  else
+    printf "N/A"
+  fi
+}
+
 # 変数の設定
 script_dir=$(resolve_script_path)
 repo_dir=$(cd "$script_dir/.." && pwd)
@@ -119,11 +127,16 @@ print(ssid ?? "")
 
 # Speedtestを実施して結果を変数に代入
 ssid=$(get_current_ssid)
-output=$(networkQuality)
+output=$(networkQuality 2>/dev/null || true)
 uplink=$(echo "$output" | awk -F': ' '/Uplink capacity/{print $2}')
 downlink=$(echo "$output" | awk -F': ' '/Downlink capacity/ {print $2}')
 res=$(echo "$output" | awk -F': ' '/Responsiveness/ {print $2}')
 idle=$(echo "$output" | awk -F': ' '/Idle Latency/ {print $2}')
+
+uplink=$(value_or_na "$uplink")
+downlink=$(value_or_na "$downlink")
+res=$(value_or_na "$res")
+idle=$(value_or_na "$idle")
 
 # 現在時刻を取得して変数に代入
 timestamp=$(date '+%Y-%m-%d %H:%M')
@@ -144,7 +157,7 @@ while IFS= read -r line; do
   ssid=$(echo "$line" | awk -F '\t' '{print $2}')
   uplink=$(echo "$line" | awk -F '\t' '{print $3}')
   downlink=$(echo "$line" | awk -F '\t' '{print $4}')
-  res=$(echo "$line" | awk -F '\t' '{print $5}' | awk -F ' ' '{print $1}')
-  idle=$(echo "$line" | awk -F '\t' '{print $6}' | awk -F ' ' '{print $1 "ms"}')
+  res=$(echo "$line" | awk -F '\t' '{print $5}')
+  idle=$(echo "$line" | awk -F '\t' '{print $6}')
   echo "$timestamp $ssid $uplink $downlink $res $idle"
 done <<< "$latest_lines"

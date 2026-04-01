@@ -74,12 +74,12 @@ format_latency_metric() {
   fi
 
   if [[ "$value" =~ ^(.+)\ \(([0-9]+(\.[0-9]+)?\ (milliseconds|seconds))\ \|\ ([0-9]+)\ RPM\)$ ]]; then
-    printf "%s (%s | %s RPM)" \
+    printf "%s (%s / %s RPM)" \
       "${BASH_REMATCH[1]}" \
       "$(format_duration "${BASH_REMATCH[2]}")" \
       "${BASH_REMATCH[5]}"
   elif [[ "$value" =~ ^([0-9]+(\.[0-9]+)?\ (milliseconds|seconds))\ \|\ ([0-9]+)\ RPM$ ]]; then
-    printf "%s | %s RPM" \
+    printf "%s / %s RPM" \
       "$(format_duration "${BASH_REMATCH[1]}")" \
       "${BASH_REMATCH[4]}"
   else
@@ -211,5 +211,5 @@ latest_lines=$(tail -n 10 "$logfile")
 
 # 各行をそのまま表示
 while IFS= read -r line; do
-  echo "$line"
+  echo "${line// | / / }"
 done <<< "$latest_lines"

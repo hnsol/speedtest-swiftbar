@@ -34,6 +34,59 @@ value_or_na() {
   fi
 }
 
+round_number() {
+  awk -v num="$1" 'BEGIN { printf "%.0f", num }'
+}
+
+format_capacity() {
+  local value="$1"
+
+  if [ "$value" = "N/A" ]; then
+    printf "%s" "$value"
+    return
+  fi
+
+  if [[ "$value" =~ ^([0-9]+(\.[0-9]+)?)\ ([A-Za-z]+)$ ]]; then
+    printf "%s %s" "$(round_number "${BASH_REMATCH[1]}")" "${BASH_REMATCH[3]}"
+  else
+    printf "%s" "$value"
+  fi
+}
+
+format_duration() {
+  local value="$1"
+
+  if [[ "$value" =~ ^([0-9]+(\.[0-9]+)?)\ milliseconds$ ]]; then
+    printf "%s ms" "$(round_number "${BASH_REMATCH[1]}")"
+  elif [[ "$value" =~ ^([0-9]+(\.[0-9]+)?)\ seconds$ ]]; then
+    printf "%s s" "$(round_number "${BASH_REMATCH[1]}")"
+  else
+    printf "%s" "$value"
+  fi
+}
+
+format_latency_metric() {
+  local value="$1"
+
+  if [ "$value" = "N/A" ]; then
+    printf "%s" "$value"
+    return
+  fi
+
+  if [[ "$value" =~ ^(.+)\ \(([0-9]+(\.[0-9]+)?\ (milliseconds|seconds))\ \|\ ([0-9]+)\ RPM\)$ ]]; then
+    printf "%s (%s | %s RPM)" \
+      "${BASH_REMATCH[1]}" \
+      "$(format_duration "${BASH_REMATCH[2]}")" \
+      "${BASH_REMATCH[5]}"
+  elif [[ "$value" =~ ^([0-9]+(\.[0-9]+)?\ (milliseconds|seconds))\ \|\ ([0-9]+)\ RPM$ ]]; then
+    printf "%s | %s RPM" \
+      "$(format_duration "${BASH_REMATCH[1]}")" \
+      "${BASH_REMATCH[4]}"
+  else
+    printf "%s" "$value"
+  fi
+}
+
 # 変数の設定
 script_dir=$(resolve_script_path)
 repo_dir=$(cd "$script_dir/.." && pwd)
@@ -138,11 +191,16 @@ downlink=$(value_or_na "$downlink")
 res=$(value_or_na "$res")
 idle=$(value_or_na "$idle")
 
+uplink=$(format_capacity "$uplink")
+downlink=$(format_capacity "$downlink")
+res=$(format_latency_metric "$res")
+idle=$(format_latency_metric "$idle")
+
 # 現在時刻を取得して変数に代入
 timestamp=$(date '+%Y-%m-%d %H:%M')
 
 # 結果をログファイルに追記
-printf "（%s）\t%s\t%s\t%s\t%s\t%s\n" "$timestamp" "$ssid" "↑ $uplink" "↓ $downlink" "$res" "$idle" >> "$logfile"
+printf "（%s） %s ↑ %s ↓ %s %s %s\n" "$timestamp" "$ssid" "$uplink" "$downlink" "$res" "$idle" >> "$logfile"
 
 # メニューバーに表示する内容を出力
 echo "$icon"
@@ -151,13 +209,7 @@ echo "---"
 # 最新の10行を取得
 latest_lines=$(tail -n 10 "$logfile")
 
-# 各行の内容を必要な情報に分割して表示
+# 各行をそのまま表示
 while IFS= read -r line; do
-  timestamp=$(echo "$line" | awk -F '\t' '{print $1}')
-  ssid=$(echo "$line" | awk -F '\t' '{print $2}')
-  uplink=$(echo "$line" | awk -F '\t' '{print $3}')
-  downlink=$(echo "$line" | awk -F '\t' '{print $4}')
-  res=$(echo "$line" | awk -F '\t' '{print $5}')
-  idle=$(echo "$line" | awk -F '\t' '{print $6}')
-  echo "$timestamp $ssid $uplink $downlink $res $idle"
+  echo "$line"
 done <<< "$latest_lines"
